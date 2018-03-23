@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,13 +36,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.clj.blesample.adapter.DeviceAdapter;
+import com.clj.blesample.aesUtil.AESUtil;
 import com.clj.blesample.comm.ObserverManager;
 import com.clj.blesample.operation.OperationActivity;
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
 import com.clj.fastble.callback.BleMtuChangedCallback;
+import com.clj.fastble.callback.BleNotifyCallback;
 import com.clj.fastble.callback.BleRssiCallback;
 import com.clj.fastble.callback.BleScanCallback;
+import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.exception.BleException;
 import com.clj.fastble.scan.BleScanRuleConfig;
@@ -272,15 +277,132 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, getString(R.string.connect_fail), Toast.LENGTH_LONG).show();
             }
 
+
             @Override
-            public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
+            public void onConnectSuccess(final BleDevice bleDevice, BluetoothGatt gatt, int status) {
                 Log.e("gatt callback","connect succcess");
+
+                List<BluetoothGattService> list = gatt.getServices();
+                Log.e("list",list.size()+"");
+
+                UUID UUID36f6 = UUID.randomUUID();
+                UUID UUIDService = UUID.randomUUID();
+                UUID UUID36f5 = UUID.randomUUID();
+
+                for(BluetoothGattService service : list){
+                    UUID uuid = service.getUuid();
+                    List<BluetoothGattCharacteristic> BTGCList = service.getCharacteristics();
+
+                    if(!uuid.toString().contains("fee7")){
+                        continue;
+                    }else{
+                        UUIDService = uuid;
+                    }
+                    Log.e("service uuid",uuid.toString());
+                    for(BluetoothGattCharacteristic BTGC : BTGCList){
+                        UUID BTGCUuid = BTGC.getUuid();
+                        Log.e("BTGCUuid",BTGCUuid.toString());
+
+                        if(BTGCUuid.toString().contains("36f6")){
+                            UUID36f6 = BTGCUuid;
+                        }
+
+                        byte[] bytes = BTGC.getValue();
+                        System.out.println("bytes:"+bytes);
+
+                        if(BTGCUuid.toString().contains("36f5")){
+                            UUID36f5 = BTGCUuid;
+                        }
+                    }
+
+                    System.out.println(UUIDService.toString());
+                    System.out.println(UUID36f6.toString());
+                    System.out.println(UUID36f5.toString());
+                    BleManager.getInstance().notify(bleDevice, UUIDService.toString(), UUID36f6.toString(),
+                            new BleNotifyCallback() {
+                                @Override
+                                public void onNotifySuccess() {
+                                    Log.e("notify success","xxx");
+                                }
+
+                                @Override
+                                public void onNotifyFailure(BleException exception) {
+                                    Log.e("notify failure","xxx");
+                                }
+
+                                @Override
+                                public void onCharacteristicChanged(byte[] data) {
+                                    Log.e("notify character","xxx");
+
+                                    byte[] decrypt = AESUtil.Decrypt(data,AESUtil.PRIVATE_AES);
+                                    String de = "";
+                                    for(byte b : decrypt){
+                                        de = de + b + ",";
+                                    }
+                                    Log.e("decrypt",de);
+
+                                    byte[] openlock = new byte[]{0x05,0x01,0x06,0x30,0x30,0x30,0x30,0x30,
+                                                                 0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
+                                    openlock[9] = decrypt[3];
+                                    openlock[10] = decrypt[4];
+                                    openlock[11] = decrypt[5];
+                                    openlock[12] = decrypt[6];
+
+                                    byte[] encrypt = AESUtil.Encrypt(openlock,AESUtil.PRIVATE_AES);
+                                    BleManager.getInstance().write(bleDevice, "0000fee7-0000-1000-8000-00805f9b34fb",
+                                            "000036f5-0000-1000-8000-00805f9b34fb", encrypt,
+                                            new BleWriteCallback() {
+                                                @Override
+                                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                                    Log.e("write success","xxx");
+                                                }
+
+                                                @Override
+                                                public void onWriteFailure(BleException exception) {
+                                                    Log.e("write fail","xxx");
+                                                    System.out.println(exception.toString());
+                                                }
+                                            });
+
+
+                                }
+                            });
+
+
+                    try{
+                    Thread.sleep(120);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                    byte[] access_token = new byte[]{0x06,0x01,0x01,0x01,0x5C,0x01,0x21,0x1F,
+                            0x29,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+                    byte[] encrypt = AESUtil.Encrypt(access_token,AESUtil.PRIVATE_AES);
+                    System.out.println("encrypt.length : " + encrypt.length);
+                    BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                            new BleWriteCallback() {
+                                @Override
+                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                    Log.e("write success","xxx");
+                                }
+
+                                @Override
+                                public void onWriteFailure(BleException exception) {
+                                    Log.e("write fail","xxx");
+                                    System.out.println(exception.toString());
+                                }
+                            });
+
+                }
+
+
                 progressDialog.dismiss();
                 mDeviceAdapter.addDevice(bleDevice);
                 mDeviceAdapter.notifyDataSetChanged();
-
-                readRssi(bleDevice);
-                setMtu(bleDevice, 23);
+//
+//                readRssi(bleDevice);
+//                setMtu(bleDevice, 23);
             }
 
             @Override
