@@ -61,11 +61,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_CODE_OPEN_GPS = 1;
     private static final int REQUEST_CODE_PERMISSION_LOCATION = 2;
 
-    private LinearLayout layout_setting;
-    private TextView txt_setting;
+//    private LinearLayout layout_setting;
+//    private TextView txt_setting;
+//    private EditText et_name, et_mac, et_uuid;
+//    private Switch sw_auto;
     private Button btn_scan;
-    private EditText et_name, et_mac, et_uuid;
-    private Switch sw_auto;
     private ImageView img_loading;
 
     private Animation operatingAnim;
@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initView();
 
         BleManager.getInstance().init(getApplication());
+
         BleManager.getInstance()
                 .enableLog(true)
                 .setMaxConnectCount(7)
@@ -111,15 +112,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
 
-            case R.id.txt_setting:
-                if (layout_setting.getVisibility() == View.VISIBLE) {
-                    layout_setting.setVisibility(View.GONE);
-                    txt_setting.setText(getString(R.string.expand_search_settings));
-                } else {
-                    layout_setting.setVisibility(View.VISIBLE);
-                    txt_setting.setText(getString(R.string.retrieve_search_settings));
-                }
-                break;
+//            case R.id.txt_setting:
+//                if (layout_setting.getVisibility() == View.VISIBLE) {
+//                    layout_setting.setVisibility(View.GONE);
+//                    txt_setting.setText(getString(R.string.expand_search_settings));
+//                } else {
+//                    layout_setting.setVisibility(View.VISIBLE);
+//                    txt_setting.setText(getString(R.string.retrieve_search_settings));
+//                }
+//                break;
         }
     }
 
@@ -131,16 +132,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_scan.setText(getString(R.string.start_scan));
         btn_scan.setOnClickListener(this);
 
-        et_name = (EditText) findViewById(R.id.et_name);
-        et_mac = (EditText) findViewById(R.id.et_mac);
-        et_uuid = (EditText) findViewById(R.id.et_uuid);
-        sw_auto = (Switch) findViewById(R.id.sw_auto);
+//        et_name = (EditText) findViewById(R.id.et_name);
+//        et_mac = (EditText) findViewById(R.id.et_mac);
+//        et_uuid = (EditText) findViewById(R.id.et_uuid);
+//        sw_auto = (Switch) findViewById(R.id.sw_auto);
 
-        layout_setting = (LinearLayout) findViewById(R.id.layout_setting);
-        txt_setting = (TextView) findViewById(R.id.txt_setting);
-        txt_setting.setOnClickListener(this);
-        layout_setting.setVisibility(View.GONE);
-        txt_setting.setText(getString(R.string.expand_search_settings));
+//        layout_setting = (LinearLayout) findViewById(R.id.layout_setting);
+//        txt_setting = (TextView) findViewById(R.id.txt_setting);
+//        txt_setting.setOnClickListener(this);
+//        layout_setting.setVisibility(View.GONE);
+//        txt_setting.setText(getString(R.string.expand_search_settings));
 
         img_loading = (ImageView) findViewById(R.id.img_loading);
         operatingAnim = AnimationUtils.loadAnimation(this, R.anim.rotate);
@@ -186,49 +187,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDeviceAdapter.notifyDataSetChanged();
     }
 
-    private void setScanRule() {
-        String[] uuids;
-        String str_uuid = et_uuid.getText().toString();
-        if (TextUtils.isEmpty(str_uuid)) {
-            uuids = null;
-        } else {
-            uuids = str_uuid.split(",");
-        }
-        UUID[] serviceUuids = null;
-        if (uuids != null && uuids.length > 0) {
-            serviceUuids = new UUID[uuids.length];
-            for (int i = 0; i < uuids.length; i++) {
-                String name = uuids[i];
-                String[] components = name.split("-");
-                if (components.length != 5){
-                    serviceUuids[i] = null;
-                }else {
-                    serviceUuids[i] = UUID.fromString(uuids[i]);
-                }
-            }
-        }
-
-        String[] names;
-        String str_name = et_name.getText().toString();
-        if (TextUtils.isEmpty(str_name)) {
-            names = null;
-        } else {
-            names = str_name.split(",");
-        }
-
-        String mac = et_mac.getText().toString();
-
-        boolean isAutoConnect = sw_auto.isChecked();
-
-        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
-                .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
-                .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
-                .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
-                .setAutoConnect(isAutoConnect)      // 连接时的autoConnect参数，可选，默认false
-                .setScanTimeOut(10000)              // 扫描超时时间，可选，默认10秒
-                .build();
-        BleManager.getInstance().initScanRule(scanRuleConfig);
-    }
+//    private void setScanRule() {
+//        String[] uuids;
+//        String str_uuid = et_uuid.getText().toString();
+//        if (TextUtils.isEmpty(str_uuid)) {
+//            uuids = null;
+//        } else {
+//            uuids = str_uuid.split(",");
+//        }
+//        UUID[] serviceUuids = null;
+//        if (uuids != null && uuids.length > 0) {
+//            serviceUuids = new UUID[uuids.length];
+//            for (int i = 0; i < uuids.length; i++) {
+//                String name = uuids[i];
+//                String[] components = name.split("-");
+//                if (components.length != 5){
+//                    serviceUuids[i] = null;
+//                }else {
+//                    serviceUuids[i] = UUID.fromString(uuids[i]);
+//                }
+//            }
+//        }
+//
+//        String[] names;
+//        String str_name = et_name.getText().toString();
+//        if (TextUtils.isEmpty(str_name)) {
+//            names = null;
+//        } else {
+//            names = str_name.split(",");
+//        }
+//
+//        String mac = et_mac.getText().toString();
+//
+//        boolean isAutoConnect = sw_auto.isChecked();
+//
+//        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
+//                .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
+//                .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
+//                .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
+//                .setAutoConnect(isAutoConnect)      // 连接时的autoConnect参数，可选，默认false
+//                .setScanTimeOut(10000)              // 扫描超时时间，可选，默认10秒
+//                .build();
+//        BleManager.getInstance().initScanRule(scanRuleConfig);
+//    }
 
     private void startScan() {
         BleManager.getInstance().scan(new BleScanCallback() {
@@ -332,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 @Override
                                 public void onCharacteristicChanged(byte[] data) {
-                                    Log.e("notify character","xxx");
+                                    Log.e("notify on character","xxx");
 
                                     byte[] decrypt = AESUtil.Decrypt(data,AESUtil.PRIVATE_AES);
                                     String de = "";
@@ -340,6 +341,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         de = de + b + ",";
                                     }
                                     Log.e("decrypt",de);
+
+                                    if(decrypt[0] == 5 && (decrypt[1] == 2 || decrypt[1] == 13)){
+                                        return;
+                                    }
 
                                     byte[] openlock = new byte[]{0x05,0x01,0x06,0x30,0x30,0x30,0x30,0x30,
                                                                  0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
@@ -349,18 +354,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     openlock[11] = decrypt[5];
                                     openlock[12] = decrypt[6];
 
+                                    try{
+                                        Thread.sleep(200);
+                                    }catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+
                                     byte[] encrypt = AESUtil.Encrypt(openlock,AESUtil.PRIVATE_AES);
                                     BleManager.getInstance().write(bleDevice, "0000fee7-0000-1000-8000-00805f9b34fb",
                                             "000036f5-0000-1000-8000-00805f9b34fb", encrypt,
                                             new BleWriteCallback() {
                                                 @Override
                                                 public void onWriteSuccess(int current, int total, byte[] justWrite) {
-                                                    Log.e("write success","xxx");
+                                                    Log.e("write success","open lock success");
                                                 }
 
                                                 @Override
                                                 public void onWriteFailure(BleException exception) {
-                                                    Log.e("write fail","xxx");
+                                                    Log.e("write fail","open lock failure");
                                                     System.out.println(exception.toString());
                                                 }
                                             });
@@ -371,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
                     try{
-                    Thread.sleep(120);
+                    Thread.sleep(200);
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -384,12 +395,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             new BleWriteCallback() {
                                 @Override
                                 public void onWriteSuccess(int current, int total, byte[] justWrite) {
-                                    Log.e("write success","xxx");
+                                    Log.e("write success","access token");
                                 }
 
                                 @Override
                                 public void onWriteFailure(BleException exception) {
-                                    Log.e("write fail","xxx");
+                                    Log.e("write fail","access tokcen");
                                     System.out.println(exception.toString());
                                 }
                             });
@@ -473,6 +484,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!bluetoothAdapter.isEnabled()) {
             Toast.makeText(this, getString(R.string.please_open_blue), Toast.LENGTH_LONG).show();
+            bluetoothAdapter.enable();
             return;
         }
 
@@ -518,7 +530,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             .setCancelable(false)
                             .show();
                 } else {
-                    setScanRule();
+//                    setScanRule();
                     startScan();
                 }
                 break;
@@ -537,7 +549,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_OPEN_GPS) {
             if (checkGPSIsOpen()) {
-                setScanRule();
+//                setScanRule();
                 startScan();
             }
         }
