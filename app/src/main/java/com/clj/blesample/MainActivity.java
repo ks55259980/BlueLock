@@ -109,6 +109,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     byte[] change_password_2 = new byte[]{0x05,0x04,0x06,0x01,0x30,0x30,0x30,0x30,
                                           0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
 
+    // 查询工作状态
+    byte[] full_status = new byte[]{0x05,0x22,0x01,0x00,0x30,0x30,0x30,0x30,
+                                    0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -309,6 +313,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 System.out.println(exception.toString());
                             }
                         });
+
+            }
+
+            @Override
+            public void onFullStatus(BleDevice bleDevice){
+                if (!BleManager.getInstance().isConnected(bleDevice)) {
+                    connect(bleDevice);
+                }
+
+                full_status[4] = token[0];
+                full_status[5] = token[1];
+                full_status[6] = token[2];
+                full_status[7] = token[3];
+
+                byte[] encrypt = AESUtil.Encrypt(full_status, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "full status");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "full status");
+                                System.out.println(exception.toString());
+                            }
+                        });
+
 
             }
 
@@ -583,6 +616,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if(decrypt[0] == 0x05 && decrypt[1] == 0x05 && decrypt[2] == 01){
                 Log.e("change password",decrypt[3] + " -> 0 success , 1 failure");
+                return;
+            }
+
+            if(decrypt[0] == 0x05 && decrypt[1] == 0x22 && decrypt[2] == 0x08){
+                Log.e("change password",decrypt[3] + " -> 0 开 , 1 关");
                 return;
             }
 
