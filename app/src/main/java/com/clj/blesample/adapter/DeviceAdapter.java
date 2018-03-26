@@ -103,6 +103,7 @@ public class DeviceAdapter extends BaseAdapter {
             holder.btn_changed = (Button) convertView.findViewById(R.id.btn_changed);
             holder.btn_open_lock = (Button) convertView.findViewById(R.id.btn_open_lock);
             holder.btn_power = (Button) convertView.findViewById(R.id.btn_power);
+            holder.btn_change_password = (Button) convertView.findViewById(R.id.btn_change_password);
         }
 
         final BleDevice bleDevice = getItem(position);
@@ -191,6 +192,16 @@ public class DeviceAdapter extends BaseAdapter {
                 }
             }
         });
+
+        holder.btn_change_password.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mListener != null){
+                    mListener.onChangePassword(bleDevice);
+                }
+            }
+        });
+
         return convertView;
     }
 
@@ -208,6 +219,7 @@ public class DeviceAdapter extends BaseAdapter {
         Button btn_changed;
         Button btn_open_lock;
         Button btn_power;
+        Button btn_change_password;
     }
 
     public interface OnDeviceClickListener {
@@ -224,6 +236,8 @@ public class DeviceAdapter extends BaseAdapter {
         void onChanged(BleDevice bleDevice);
 
         void onPower(BleDevice bleDevice);
+
+        void onChangePassword(BleDevice bleDevice);
     }
 
     private OnDeviceClickListener mListener;

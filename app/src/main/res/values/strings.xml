@@ -41,5 +41,6 @@
     <string name="lock_status">查看状态</string>
     <string name="changed">开仓</string>
     <string name="power">电量</string>
+    <string name="change_password">改密</string>
 
 </resources>

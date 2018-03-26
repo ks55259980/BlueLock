@@ -133,6 +133,13 @@
                 android:text="@string/power"
                 android:textSize="12sp" />
 
+            <Button
+                android:id="@+id/btn_change_password"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/change_password"
+                android:textSize="12sp" />
 
         </LinearLayout>
 

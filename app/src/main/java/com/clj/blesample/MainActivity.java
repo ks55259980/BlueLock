@@ -78,7 +78,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     UUID UUID36f5 = UUID.randomUUID();
 
     // password
-    private byte[] password = new byte[]{0x30,0x30,0x30,0x30,0x30,0x30};
+    private byte[] password = new byte[]{0x01,0x02,0x03,0x04,0x05,0x06};
+    private byte[] new_password = new byte[]{0x01,0x02,0x03,0x04,0x05,0x06};
 
     //init token
     private byte[] token = new byte[4];
@@ -100,8 +101,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //获取电量的byte[]
     byte[] access_power = new byte[]{0x02,0x01,0x01,0x01,0x30,0x30,0x30,0x30,
-                            0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+                                     0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
 
+    //修改密码
+    byte[] change_password_1 = new byte[]{0x05,0x03,0x06,0x01,0x30,0x30,0x30,0x30,
+                                          0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+    byte[] change_password_2 = new byte[]{0x05,0x04,0x06,0x01,0x30,0x30,0x30,0x30,
+                                          0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -250,7 +256,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!BleManager.getInstance().isConnected(bleDevice)) {
                     connect(bleDevice);
                 }
-
+                open_store[3] = password[0];
+                open_store[4] = password[1];
+                open_store[5] = password[2];
+                open_store[6] = password[3];
+                open_store[7] = password[4];
+                open_store[8] = password[5];
                 open_store[9] = token[0];
                 open_store[10] = token[1];
                 open_store[11] = token[2];
@@ -278,16 +289,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     connect(bleDevice);
                 }
 
-                access_power[3] = password[0];
-                access_power[4] = password[1];
-                access_power[5] = password[2];
-                access_power[6] = password[3];
-                access_power[7] = password[4];
-                access_power[8] = password[5];
-                access_power[9] = token[0];
-                access_power[10] = token[1];
-                access_power[11] = token[2];
-                access_power[12] = token[3];
+
+                access_power[4] = token[0];
+                access_power[5] = token[1];
+                access_power[6] = token[2];
+                access_power[7] = token[3];
 
                 byte[] encrypt = AESUtil.Encrypt(access_power, AESUtil.PRIVATE_AES);
                 BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
@@ -305,8 +311,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         });
 
             }
-        });
 
+            @Override
+            public void onChangePassword(BleDevice bleDevice){
+                if (!BleManager.getInstance().isConnected(bleDevice)) {
+                    connect(bleDevice);
+                }
+
+                change_password_1[3] = password[0];
+                change_password_1[4] = password[1];
+                change_password_1[5] = password[2];
+                change_password_1[6] = password[3];
+                change_password_1[7] = password[4];
+                change_password_1[8] = password[5];
+                change_password_1[9] = token[0];
+                change_password_1[10] = token[1];
+                change_password_1[11] = token[2];
+                change_password_1[12] = token[3];
+                byte[] encrypt = AESUtil.Encrypt(change_password_1, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "change password 01");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "change password 01");
+                                System.out.println(exception.toString());
+                            }
+                        });
+
+                try{
+                    Thread.sleep(200);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                change_password_2[3] = new_password[0];
+                change_password_2[4] = new_password[1];
+                change_password_2[5] = new_password[2];
+                change_password_2[6] = new_password[3];
+                change_password_2[7] = new_password[4];
+                change_password_2[8] = new_password[5];
+                change_password_2[9] = token[0];
+                change_password_2[10] = token[1];
+                change_password_2[11] = token[2];
+                change_password_2[12] = token[3];
+                byte[] encrypt_2 = AESUtil.Encrypt(change_password_2, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt_2,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "change password 02");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "change password 02");
+                                System.out.println(exception.toString());
+                            }
+                        });
+            }
+        });
 
         ListView listView_device = (ListView) findViewById(R.id.list_device);
         listView_device.setAdapter(mDeviceAdapter);
@@ -510,6 +578,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if(decrypt[0] == 0x02 && decrypt[1] == 0x02 && decrypt[2] == 01){
                 Log.e("power",decrypt[3] + "");
+                return;
+            }
+
+            if(decrypt[0] == 0x05 && decrypt[1] == 0x05 && decrypt[2] == 01){
+                Log.e("change password",decrypt[3] + " -> 0 success , 1 failure");
                 return;
             }
 
