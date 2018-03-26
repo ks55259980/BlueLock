@@ -39,6 +39,7 @@
     <string name="enter">进入操作</string>
     <string name="open_lock">开锁</string>
     <string name="lock_status">查看状态</string>
-    <string name="changed">可变按钮</string>
+    <string name="changed">开仓</string>
+    <string name="power">电量</string>
 
 </resources>

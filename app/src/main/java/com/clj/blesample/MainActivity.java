@@ -72,6 +72,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DeviceAdapter mDeviceAdapter;
     private ProgressDialog progressDialog;
 
+
+    UUID UUID36f6 = UUID.randomUUID();
+    UUID UUIDService = UUID.randomUUID();
+    UUID UUID36f5 = UUID.randomUUID();
+
+    // password
+    private byte[] password = new byte[]{0x30,0x30,0x30,0x30,0x30,0x30};
+
     //init token
     private byte[] token = new byte[4];
 
@@ -81,6 +89,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //获取token的byte[]
     byte[] access_token = new byte[]{0x06,0x01,0x01,0x01,0x5C,0x01,0x21,0x1F,
                                      0x29,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
+    //获取lock status的byte[]
+    byte[] lock_status = new byte[]{0x05,0x0E,0x01,0x01,0x5C,0x01,0x21,0x1F,
+                                    0x29,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
+    //开仓的byte[]
+    byte[] open_store = new byte[]{0x10,0x01,0x06,0x30,0x30,0x30,0x30,0x30,
+                                   0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
+    //获取电量的byte[]
+    byte[] access_power = new byte[]{0x02,0x01,0x01,0x01,0x30,0x30,0x30,0x30,
+                            0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,15 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
 
-//            case R.id.txt_setting:
-//                if (layout_setting.getVisibility() == View.VISIBLE) {
-//                    layout_setting.setVisibility(View.GONE);
-//                    txt_setting.setText(getString(R.string.expand_search_settings));
-//                } else {
-//                    layout_setting.setVisibility(View.VISIBLE);
-//                    txt_setting.setText(getString(R.string.retrieve_search_settings));
-//                }
-//                break;
         }
     }
 
@@ -141,17 +153,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_scan = (Button) findViewById(R.id.btn_scan);
         btn_scan.setText(getString(R.string.start_scan));
         btn_scan.setOnClickListener(this);
-
-//        et_name = (EditText) findViewById(R.id.et_name);
-//        et_mac = (EditText) findViewById(R.id.et_mac);
-//        et_uuid = (EditText) findViewById(R.id.et_uuid);
-//        sw_auto = (Switch) findViewById(R.id.sw_auto);
-
-//        layout_setting = (LinearLayout) findViewById(R.id.layout_setting);
-//        txt_setting = (TextView) findViewById(R.id.txt_setting);
-//        txt_setting.setOnClickListener(this);
-//        layout_setting.setVisibility(View.GONE);
-//        txt_setting.setText(getString(R.string.expand_search_settings));
 
         img_loading = (ImageView) findViewById(R.id.img_loading);
         operatingAnim = AnimationUtils.loadAnimation(this, R.anim.rotate);
@@ -175,15 +176,138 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
 
+//            @Override
+//            public void onDetail(BleDevice bleDevice) {
+//                if (BleManager.getInstance().isConnected(bleDevice)) {
+//                    Intent intent = new Intent(MainActivity.this, OperationActivity.class);
+//                    intent.putExtra(OperationActivity.KEY_DATA, bleDevice);
+//                    startActivity(intent);
+//                }
+//            }
+
             @Override
-            public void onDetail(BleDevice bleDevice) {
-                if (BleManager.getInstance().isConnected(bleDevice)) {
-                    Intent intent = new Intent(MainActivity.this, OperationActivity.class);
-                    intent.putExtra(OperationActivity.KEY_DATA, bleDevice);
-                    startActivity(intent);
+            public void onOpenLock(BleDevice bleDevice){
+                if (!BleManager.getInstance().isConnected(bleDevice)) {
+                    connect(bleDevice);
                 }
+
+                openlock[3] = password[0];
+                openlock[4] = password[1];
+                openlock[5] = password[2];
+                openlock[6] = password[3];
+                openlock[7] = password[4];
+                openlock[8] = password[5];
+                openlock[9] = token[0];
+                openlock[10] = token[1];
+                openlock[11] = token[2];
+                openlock[12] = token[3];
+                byte[] encrypt = AESUtil.Encrypt(openlock, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "open lock");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "open lock");
+                                System.out.println(exception.toString());
+                            }
+                        });
+
+
+            }
+
+            @Override
+            public void onLockStatus(BleDevice bleDevice){
+                if (!BleManager.getInstance().isConnected(bleDevice)) {
+                    connect(bleDevice);
+                }
+
+                lock_status[4] = token[0];
+                lock_status[5] = token[1];
+                lock_status[6] = token[2];
+                lock_status[7] = token[3];
+                byte[] encrypt = AESUtil.Encrypt(lock_status, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "access status");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "access status");
+                                System.out.println(exception.toString());
+                            }
+                        });
+            }
+
+            @Override
+            public void onChanged(BleDevice bleDevice){
+                if (!BleManager.getInstance().isConnected(bleDevice)) {
+                    connect(bleDevice);
+                }
+
+                open_store[9] = token[0];
+                open_store[10] = token[1];
+                open_store[11] = token[2];
+                open_store[12] = token[3];
+                byte[] encrypt = AESUtil.Encrypt(open_store, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "open store");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "open store");
+                                System.out.println(exception.toString());
+                            }
+                        });
+
+            }
+
+            @Override
+            public void onPower(BleDevice bleDevice){
+                if (!BleManager.getInstance().isConnected(bleDevice)) {
+                    connect(bleDevice);
+                }
+
+                access_power[3] = password[0];
+                access_power[4] = password[1];
+                access_power[5] = password[2];
+                access_power[6] = password[3];
+                access_power[7] = password[4];
+                access_power[8] = password[5];
+                access_power[9] = token[0];
+                access_power[10] = token[1];
+                access_power[11] = token[2];
+                access_power[12] = token[3];
+
+                byte[] encrypt = AESUtil.Encrypt(access_power, AESUtil.PRIVATE_AES);
+                BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
+                        new BleWriteCallback() {
+                            @Override
+                            public void onWriteSuccess(int current, int total, byte[] justWrite) {
+                                Log.e("write success", "access power");
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleException exception) {
+                                Log.e("write fail", "access power");
+                                System.out.println(exception.toString());
+                            }
+                        });
+
             }
         });
+
+
         ListView listView_device = (ListView) findViewById(R.id.list_device);
         listView_device.setAdapter(mDeviceAdapter);
     }
@@ -197,49 +321,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDeviceAdapter.notifyDataSetChanged();
     }
 
-//    private void setScanRule() {
-//        String[] uuids;
-//        String str_uuid = et_uuid.getText().toString();
-//        if (TextUtils.isEmpty(str_uuid)) {
-//            uuids = null;
-//        } else {
-//            uuids = str_uuid.split(",");
-//        }
-//        UUID[] serviceUuids = null;
-//        if (uuids != null && uuids.length > 0) {
-//            serviceUuids = new UUID[uuids.length];
-//            for (int i = 0; i < uuids.length; i++) {
-//                String name = uuids[i];
-//                String[] components = name.split("-");
-//                if (components.length != 5){
-//                    serviceUuids[i] = null;
-//                }else {
-//                    serviceUuids[i] = UUID.fromString(uuids[i]);
-//                }
-//            }
-//        }
-//
-//        String[] names;
-//        String str_name = et_name.getText().toString();
-//        if (TextUtils.isEmpty(str_name)) {
-//            names = null;
-//        } else {
-//            names = str_name.split(",");
-//        }
-//
-//        String mac = et_mac.getText().toString();
-//
-//        boolean isAutoConnect = sw_auto.isChecked();
-//
-//        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
-//                .setServiceUuids(serviceUuids)      // 只扫描指定的服务的设备，可选
-//                .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
-//                .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
-//                .setAutoConnect(isAutoConnect)      // 连接时的autoConnect参数，可选，默认false
-//                .setScanTimeOut(10000)              // 扫描超时时间，可选，默认10秒
-//                .build();
-//        BleManager.getInstance().initScanRule(scanRuleConfig);
-//    }
+
 
     private void startScan() {
         BleManager.getInstance().scan(new BleScanCallback() {
@@ -296,19 +378,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 List<BluetoothGattService> list = gatt.getServices();
                 Log.e("list",list.size()+"");
 
-                UUID UUID36f6 = UUID.randomUUID();
-                UUID UUIDService = UUID.randomUUID();
-                UUID UUID36f5 = UUID.randomUUID();
 
                 for(BluetoothGattService service : list){
                     UUID uuid = service.getUuid();
-                    List<BluetoothGattCharacteristic> BTGCList = service.getCharacteristics();
-
                     if(!uuid.toString().contains("fee7")){
                         continue;
                     }else{
                         UUIDService = uuid;
                     }
+
+                    List<BluetoothGattCharacteristic> BTGCList = service.getCharacteristics();
                     Log.e("service uuid",uuid.toString());
                     for(BluetoothGattCharacteristic BTGC : BTGCList){
                         UUID BTGCUuid = BTGC.getUuid();
@@ -318,102 +397,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             UUID36f6 = BTGCUuid;
                         }
 
-                        byte[] bytes = BTGC.getValue();
-                        System.out.println("bytes:"+bytes);
-
                         if(BTGCUuid.toString().contains("36f5")){
                             UUID36f5 = BTGCUuid;
                         }
                     }
 
-                    System.out.println(UUIDService.toString());
-                    System.out.println(UUID36f6.toString());
-                    System.out.println(UUID36f5.toString());
+                    // set notify callback for indicate UUIDService and UUIDCharactor
                     BleManager.getInstance().notify(bleDevice, UUIDService.toString(), UUID36f6.toString(),
-                            new BleNotifyCallback() {
-                                @Override
-                                public void onNotifySuccess() {
-                                    Log.e("notify success","xxx");
-                                }
-
-                                @Override
-                                public void onNotifyFailure(BleException exception) {
-                                    Log.e("notify failure","xxx");
-                                }
-
-                                @Override
-                                public void onCharacteristicChanged(byte[] data) {
-                                    Log.e("notify on character","xxx");
-
-                                    byte[] decrypt = AESUtil.Decrypt(data,AESUtil.PRIVATE_AES);
-                                    String de = "";
-                                    for(byte b : decrypt){
-                                        de = de + b + ",";
-                                    }
-                                    Log.e("decrypt",de);
-
-                                    if(decrypt[0] == 5 && (decrypt[1] == 2 || decrypt[1] == 13)){
-                                        return;
-                                    }
-
-                                    for(byte baa : token){
-                                        token[0] = decrypt[3];
-                                        token[1] = decrypt[4];
-                                        token[2] = decrypt[5];
-                                        token[3] = decrypt[6];
-                                    }
-
-                                    openlock[9] = token[0];
-                                    openlock[10] = token[1];
-                                    openlock[11] = token[2];
-                                    openlock[12] = token[3];
-
-                                    try{
-                                        Thread.sleep(200);
-                                    }catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-
-                                    byte[] encrypt = AESUtil.Encrypt(openlock,AESUtil.PRIVATE_AES);
-                                    BleManager.getInstance().write(bleDevice, "0000fee7-0000-1000-8000-00805f9b34fb",
-                                            "000036f5-0000-1000-8000-00805f9b34fb", encrypt,
-                                            new BleWriteCallback() {
-                                                @Override
-                                                public void onWriteSuccess(int current, int total, byte[] justWrite) {
-                                                    Log.e("write success","open lock success");
-                                                }
-
-                                                @Override
-                                                public void onWriteFailure(BleException exception) {
-                                                    Log.e("write fail","open lock failure");
-                                                    System.out.println(exception.toString());
-                                                }
-                                            });
-
-
-                                }
-                            });
-
-
+                            bleNotifyCallback);
                     try{
-                    Thread.sleep(200);
+                        Thread.sleep(200);
                     }catch (Exception e){
                         e.printStackTrace();
                     }
 
-
-                    byte[] encrypt = AESUtil.Encrypt(access_token,AESUtil.PRIVATE_AES);
-                    System.out.println("encrypt.length : " + encrypt.length);
+                    // wrirte charactor for access token
+                    byte[] encrypt = AESUtil.Encrypt(access_token, AESUtil.PRIVATE_AES);
                     BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,
                             new BleWriteCallback() {
                                 @Override
                                 public void onWriteSuccess(int current, int total, byte[] justWrite) {
-                                    Log.e("write success","access token");
+                                    Log.e("write success", "access token");
                                 }
 
                                 @Override
                                 public void onWriteFailure(BleException exception) {
-                                    Log.e("write fail","access tokcen");
+                                    Log.e("write fail", "access tokcen");
                                     System.out.println(exception.toString());
                                 }
                             });
@@ -446,6 +455,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
+
+    // 通知回调类
+    private BleNotifyCallback bleNotifyCallback = new BleNotifyCallback(){
+        @Override
+        public  void onNotifySuccess(){
+            Log.e("setting notify success","xxx");
+        }
+        @Override
+        public  void onNotifyFailure(BleException exception){
+            Log.e("setting notify failure","xxx");
+        }
+        @Override
+        public  void onCharacteristicChanged(byte[] data){
+            Log.e("notify on character","xxx");
+            byte[] decrypt = AESUtil.Decrypt(data,AESUtil.PRIVATE_AES);
+
+
+            // 获取令牌的回调
+            if (decrypt[0] == 0x06 && decrypt[1] == 0x02) {
+                token[0] = decrypt[3];
+                token[1] = decrypt[4];
+                token[2] = decrypt[5];
+                token[3] = decrypt[6];
+                Log.e("access token",token[0]+","+token[1]+","+token[2]+","+token[3]);
+                Log.e("锁开关 : ",decrypt[12]+": 0 close , 1 open");
+                return;
+            }
+
+            if(decrypt[0] == 0x05 && decrypt[1] == 0x02 && decrypt[2] == 01){
+                Log.e("open lock  ",decrypt[3] + " -> 0 success , 1 failure");
+                return;
+            }
+
+            if(decrypt[0] == 0x05 && decrypt[1] == 0x0D && decrypt[2] == 01){
+                Log.e("close lock",decrypt[3] + "-> 0 success , 1 failure");
+                return;
+            }
+
+            if(decrypt[0] == 0x05 && decrypt[1] == 0x08 && decrypt[2] == 01){
+                Log.e("close lock",decrypt[3] + "-> 0 success , 1 failure");
+                return;
+            }
+
+            if(decrypt[0] == 0x05 && decrypt[1] == 0x0F && decrypt[2] == 01){
+                Log.e("lock status",decrypt[3] + "-> 0 open , 1 close");
+                return;
+            }
+
+            if(decrypt[0] == 0x10 && decrypt[1] == 0x02 && decrypt[2] == 01){
+                Log.e("开仓",decrypt[3] + "-> 0 开仓成功 , 1 开仓失败");
+                return;
+            }
+
+            if(decrypt[0] == 0x02 && decrypt[1] == 0x02 && decrypt[2] == 01){
+                Log.e("power",decrypt[3] + "");
+                return;
+            }
+
+            String decryptStr = "";
+            for(byte b : decrypt){
+                decryptStr = decryptStr + b + ",";
+            }
+            Log.e("decrypt str",decryptStr);
+
+        }
+
+    };
 
     private void readRssi(BleDevice bleDevice) {
         BleManager.getInstance().readRssi(bleDevice, new BleRssiCallback() {

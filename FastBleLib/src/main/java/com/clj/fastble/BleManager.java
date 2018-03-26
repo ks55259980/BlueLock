@@ -57,6 +57,7 @@ public class BleManager {
     private int splitWriteNum = DEFAULT_WRITE_DATA_SPLIT_COUNT;
 
     public static BleManager getInstance() {
+
         return BleManagerHolder.sBleManager;
     }
 

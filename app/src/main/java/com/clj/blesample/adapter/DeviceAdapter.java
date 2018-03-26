@@ -98,7 +98,11 @@ public class DeviceAdapter extends BaseAdapter {
             holder.layout_connected = (LinearLayout) convertView.findViewById(R.id.layout_connected);
             holder.btn_disconnect = (Button) convertView.findViewById(R.id.btn_disconnect);
             holder.btn_connect = (Button) convertView.findViewById(R.id.btn_connect);
-            holder.btn_detail = (Button) convertView.findViewById(R.id.btn_detail);
+//            holder.btn_detail = (Button) convertView.findViewById(R.id.btn_detail);
+            holder.btn_lock_status = (Button) convertView.findViewById(R.id.btn_lock_status);
+            holder.btn_changed = (Button) convertView.findViewById(R.id.btn_changed);
+            holder.btn_open_lock = (Button) convertView.findViewById(R.id.btn_open_lock);
+            holder.btn_power = (Button) convertView.findViewById(R.id.btn_power);
         }
 
         final BleDevice bleDevice = getItem(position);
@@ -143,15 +147,50 @@ public class DeviceAdapter extends BaseAdapter {
             }
         });
 
-        holder.btn_detail.setOnClickListener(new View.OnClickListener() {
+//        holder.btn_detail.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (mListener != null) {
+//                    mListener.onDetail(bleDevice);
+//                }
+//            }
+//        });
+
+        holder.btn_open_lock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
-                    mListener.onDetail(bleDevice);
+                    mListener.onOpenLock(bleDevice);
                 }
             }
         });
 
+        holder.btn_lock_status.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mListener != null){
+                    mListener.onLockStatus(bleDevice);
+                }
+            }
+        });
+
+        holder.btn_changed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mListener != null){
+                    mListener.onChanged(bleDevice);
+                }
+            }
+        });
+
+        holder.btn_power.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mListener != null){
+                    mListener.onPower(bleDevice);
+                }
+            }
+        });
         return convertView;
     }
 
@@ -164,7 +203,11 @@ public class DeviceAdapter extends BaseAdapter {
         LinearLayout layout_connected;
         Button btn_disconnect;
         Button btn_connect;
-        Button btn_detail;
+//        Button btn_detail;
+        Button btn_lock_status;
+        Button btn_changed;
+        Button btn_open_lock;
+        Button btn_power;
     }
 
     public interface OnDeviceClickListener {
@@ -172,7 +215,15 @@ public class DeviceAdapter extends BaseAdapter {
 
         void onDisConnect(BleDevice bleDevice);
 
-        void onDetail(BleDevice bleDevice);
+//        void onDetail(BleDevice bleDevice);
+
+        void onOpenLock(BleDevice bleDevice);
+
+        void onLockStatus(BleDevice bleDevice);
+
+        void onChanged(BleDevice bleDevice);
+
+        void onPower(BleDevice bleDevice);
     }
 
     private OnDeviceClickListener mListener;
