@@ -101,6 +101,31 @@
                 android:text="@string/enter"
                 android:textSize="12sp" />
 
+            <Button
+                android:id="@+id/btn_lock_status"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/lock_status"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_changed"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/changed"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_open_lock"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/open_lock"
+                android:textSize="12sp" />
+
+
         </LinearLayout>
 
 

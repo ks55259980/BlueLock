@@ -72,6 +72,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DeviceAdapter mDeviceAdapter;
     private ProgressDialog progressDialog;
 
+    //init token
+    private byte[] token = new byte[4];
+
+    //openlock byte[]
+    private byte[] openlock = new byte[]{0x05,0x01,0x06,0x30,0x30,0x30,0x30,0x30,
+                                         0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+    //获取token的byte[]
+    byte[] access_token = new byte[]{0x06,0x01,0x01,0x01,0x5C,0x01,0x21,0x1F,
+                                     0x29,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -346,13 +356,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         return;
                                     }
 
-                                    byte[] openlock = new byte[]{0x05,0x01,0x06,0x30,0x30,0x30,0x30,0x30,
-                                                                 0x30,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+                                    for(byte baa : token){
+                                        token[0] = decrypt[3];
+                                        token[1] = decrypt[4];
+                                        token[2] = decrypt[5];
+                                        token[3] = decrypt[6];
+                                    }
 
-                                    openlock[9] = decrypt[3];
-                                    openlock[10] = decrypt[4];
-                                    openlock[11] = decrypt[5];
-                                    openlock[12] = decrypt[6];
+                                    openlock[9] = token[0];
+                                    openlock[10] = token[1];
+                                    openlock[11] = token[2];
+                                    openlock[12] = token[3];
 
                                     try{
                                         Thread.sleep(200);
@@ -387,8 +401,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         e.printStackTrace();
                     }
 
-                    byte[] access_token = new byte[]{0x06,0x01,0x01,0x01,0x5C,0x01,0x21,0x1F,
-                            0x29,0x1E,0x0F,0x4E,0x0C,0x13,0x28,0x25};
+
                     byte[] encrypt = AESUtil.Encrypt(access_token,AESUtil.PRIVATE_AES);
                     System.out.println("encrypt.length : " + encrypt.length);
                     BleManager.getInstance().write(bleDevice, UUIDService.toString(), UUID36f5.toString(), encrypt,

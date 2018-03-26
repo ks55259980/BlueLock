@@ -37,5 +37,8 @@
     <string name="connected">已连接</string>
     <string name="disconnect">断开连接</string>
     <string name="enter">进入操作</string>
+    <string name="open_lock">开锁</string>
+    <string name="lock_status">查看状态</string>
+    <string name="changed">可变按钮</string>
 
 </resources>
